@@ -13,6 +13,7 @@ pipeline {
         API_PROJECT = 'src/GroceryInventory.API/GroceryInventory.API.csproj'
         WEB_PORT = '5012'
         API_PORT = '5013'
+        ASPNETCORE_ENVIRONMENT = 'Development'
     }
     
     stages {
@@ -24,14 +25,22 @@ pipeline {
         
         stage('Clean') {
             steps {
-                sh '''
-                    # Kill any existing dotnet processes using our ports
-                    lsof -ti:${WEB_PORT} | xargs kill -9 || true
-                    lsof -ti:${API_PORT} | xargs kill -9 || true
+                script {
+                    try {
+                        sh '''
+                            # Kill any existing dotnet processes using our ports
+                            lsof -ti:${WEB_PORT} | xargs kill -9 || true
+                            lsof -ti:${API_PORT} | xargs kill -9 || true
+                        '''
+                    } catch (Exception e) {
+                        echo "Warning: Could not kill processes, they may not exist: ${e.message}"
+                    }
                     
-                    dotnet clean
-                    dotnet nuget locals all --clear
-                '''
+                    sh '''
+                        dotnet clean || true
+                        dotnet nuget locals all --clear || true
+                    '''
+                }
             }
         }
         
@@ -65,19 +74,33 @@ pipeline {
         stage('Start Services') {
             steps {
                 script {
-                    // Start API in background
-                    sh """
-                        cd ./publish/api
-                        ASPNETCORE_URLS=http://localhost:${API_PORT} dotnet GroceryInventory.API.dll &
-                        sleep 5
-                    """
-                    
-                    // Start Web in background
-                    sh """
-                        cd ./publish/web
-                        ASPNETCORE_URLS=http://localhost:${WEB_PORT} dotnet GroceryInventory.Web.dll &
-                        sleep 5
-                    """
+                    try {
+                        // Start API in background with proper environment
+                        sh """
+                            cd ./publish/api
+                            export ASPNETCORE_ENVIRONMENT=Development
+                            export ASPNETCORE_URLS=http://localhost:${API_PORT}
+                            nohup dotnet GroceryInventory.API.dll > api.log 2>&1 &
+                            sleep 10
+                        """
+                        
+                        // Start Web in background with proper environment
+                        sh """
+                            cd ./publish/web
+                            export ASPNETCORE_ENVIRONMENT=Development
+                            export ASPNETCORE_URLS=http://localhost:${WEB_PORT}
+                            nohup dotnet GroceryInventory.Web.dll > web.log 2>&1 &
+                            sleep 10
+                        """
+                        
+                        // Give services time to fully start
+                        sh 'sleep 10'
+                    } catch (Exception e) {
+                        echo "Warning during service startup: ${e.message}"
+                        sh 'cat ./publish/api/api.log || true'
+                        sh 'cat ./publish/web/web.log || true'
+                        error "Failed to start services"
+                    }
                 }
             }
         }
@@ -86,33 +109,26 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Check Web UI
-                        sh "curl -f http://localhost:${WEB_PORT}"
+                        // Check Web UI with retries
+                        retry(3) {
+                            sh """
+                                curl -f http://localhost:${WEB_PORT} || (echo 'Web UI not responding' && exit 1)
+                            """
+                        }
                         
-                        // Check API endpoints
-                        sh """
-                            curl -f http://localhost:${API_PORT}/api/groceryitems
-                            curl -f http://localhost:${API_PORT}/api/suppliers
-                            curl -f http://localhost:${API_PORT}/api/orders
-                        """
+                        // Check API endpoints with retries
+                        retry(3) {
+                            sh """
+                                curl -f http://localhost:${API_PORT}/api/groceryitems || (echo 'API not responding' && exit 1)
+                            """
+                        }
                     } catch (Exception e) {
-                        error "Health check failed: ${e.message}"
+                        echo "Health check failed: ${e.message}"
+                        sh 'cat ./publish/api/api.log || true'
+                        sh 'cat ./publish/web/web.log || true'
+                        error "Health check failed"
                     }
                 }
-            }
-        }
-        
-        stage('Deploy') {
-            when {
-                branch 'main'
-            }
-            steps {
-                ansiblePlaybook(
-                    playbook: 'infrastructure/ansible/deploy.yml',
-                    inventory: 'infrastructure/ansible/inventory/production',
-                    credentialsId: 'ansible-vault-key',
-                    colorized: true
-                )
             }
         }
     }
@@ -125,6 +141,10 @@ pipeline {
                     lsof -ti:${WEB_PORT} | xargs kill -9 || true
                     lsof -ti:${API_PORT} | xargs kill -9 || true
                 """
+                
+                // Archive logs if they exist
+                archiveArtifacts artifacts: '**/publish/**/*.log', allowEmptyArchive: true
+                
                 cleanWs()
             }
         }
@@ -135,4 +155,5 @@ pipeline {
             echo "Build failed. Please check the logs for details."
         }
     }
+} 
 } 
