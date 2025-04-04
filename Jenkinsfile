@@ -1,54 +1,24 @@
 pipeline {
     agent any
     
+    tools {
+        dotnetsdk 'dotnet-7.0'
+    }
+    
     environment {
-        DOTNET_VERSION = '7.0'
-        PROJECT_NAME = 'GroceryInventory'
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
         ASPNETCORE_ENVIRONMENT = 'Development'
-        DOTNET_ROOT = "/usr/local/share/dotnet"
-        PATH = "${DOTNET_ROOT}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
     }
     
     stages {
         stage('Setup') {
             steps {
-                script {
-                    // Install .NET SDK if not present
-                    sh '''
-                        echo "Current PATH: $PATH"
-                        echo "Current directory: $(pwd)"
-                        
-                        # Create installation directory if it doesn't exist
-                        sudo mkdir -p ${DOTNET_ROOT}
-                        sudo chown -R $(whoami) ${DOTNET_ROOT}
-                        
-                        # Check if dotnet is installed
-                        if ! command -v dotnet &> /dev/null; then
-                            echo ".NET SDK not found. Installing..."
-                            
-                            # Download the install script
-                            curl -L https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-                            chmod +x dotnet-install.sh
-                            
-                            # Install .NET SDK
-                            ./dotnet-install.sh --version ${DOTNET_VERSION} --install-dir ${DOTNET_ROOT}
-                            
-                            # Cleanup
-                            rm dotnet-install.sh
-                        else
-                            echo "Found existing dotnet installation:"
-                            which dotnet
-                        fi
-                        
-                        # Verify installation
-                        echo "Verifying .NET installation..."
-                        export PATH="${DOTNET_ROOT}:$PATH"
-                        dotnet --version
-                        dotnet --info
-                    '''
-                }
+                echo "Using .NET SDK from tools configuration"
+                sh '''
+                    dotnet --version
+                    dotnet --info
+                '''
             }
         }
         
