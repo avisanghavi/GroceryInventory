@@ -25,14 +25,14 @@ namespace GroceryInventory.Web.Controllers
                 Value = i.Id.ToString(),
                 Text = $"{i.Name} ({i.Quantity} {i.Unit})",
                 Selected = selectedGroceryItemId.HasValue && i.Id == selectedGroceryItemId.Value
-            });
+            }).ToList();
 
             ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
             {
                 Value = s.Id.ToString(),
                 Text = s.Name,
                 Selected = selectedSupplierId.HasValue && s.Id == selectedSupplierId.Value
-            });
+            }).ToList();
         }
 
         // GET: Orders
