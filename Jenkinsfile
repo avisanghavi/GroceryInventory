@@ -20,6 +20,13 @@ pipeline {
             }
         }
         
+        stage('Clean') {
+            steps {
+                sh 'dotnet clean'
+                sh 'dotnet nuget locals all --clear'
+            }
+        }
+        
         stage('Restore Dependencies') {
             steps {
                 sh 'dotnet restore'
@@ -28,10 +35,7 @@ pipeline {
         
         stage('Build') {
             steps {
-                sh '''
-                    dotnet build src/GroceryInventory.Web/GroceryInventory.Web.csproj --configuration Release --no-restore
-                    dotnet build src/GroceryInventory.API/GroceryInventory.API.csproj --configuration Release --no-restore
-                '''
+                sh 'dotnet build --configuration Release --no-restore'
             }
         }
         
