@@ -5,6 +5,8 @@ pipeline {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
         NUGET_PACKAGES = '$(WORKSPACE)/.nuget/packages'
+        DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
+        DOTNET_VERSION = '7.0'  // Adjust this based on your .NET version
     }
     
     stages {
@@ -14,31 +16,27 @@ pipeline {
             }
         }
         
-        stage('Restore') {
+        stage('Restore Dependencies') {
             steps {
-                sh 'dotnet restore GroceryInventory.sln'
+                sh 'dotnet restore'
             }
         }
         
         stage('Build') {
             steps {
-                sh 'dotnet build GroceryInventory.sln --no-restore'
+                sh 'dotnet build --configuration Release --no-restore'
             }
         }
         
         stage('Test') {
             steps {
-                sh 'dotnet test GroceryInventory.sln --no-build --verbosity normal'
+                sh 'dotnet test --no-restore --verbosity normal'
             }
         }
         
         stage('Publish') {
-            when {
-                branch 'main'
-            }
             steps {
-                sh 'dotnet publish src/GroceryInventory.Web/GroceryInventory.Web.csproj -c Release -o ./publish/web'
-                sh 'dotnet publish src/GroceryInventory.API/GroceryInventory.API.csproj -c Release -o ./publish/api'
+                sh 'dotnet publish --configuration Release --no-build --output ./publish'
             }
         }
         
@@ -62,10 +60,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Build and tests completed successfully!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Build or tests failed!'
         }
     }
 } 
