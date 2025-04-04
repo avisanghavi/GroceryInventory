@@ -20,19 +20,31 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
-            {
-                Value = i.Id.ToString(),
-                Text = $"{i.Name} ({i.Quantity} {i.Unit})",
-                Selected = selectedGroceryItemId.HasValue && i.Id == selectedGroceryItemId.Value
-            }).ToList();
+            var groceryItemsList = new List<SelectListItem>();
+            var suppliersList = new List<SelectListItem>();
 
-            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            foreach (var item in groceryItems)
             {
-                Value = s.Id.ToString(),
-                Text = s.Name,
-                Selected = selectedSupplierId.HasValue && s.Id == selectedSupplierId.Value
-            }).ToList();
+                groceryItemsList.Add(new SelectListItem
+                {
+                    Value = item.Id.ToString(),
+                    Text = $"{item.Name} ({item.Quantity} {item.Unit})",
+                    Selected = selectedGroceryItemId.HasValue && item.Id == selectedGroceryItemId.Value
+                });
+            }
+
+            foreach (var supplier in suppliers)
+            {
+                suppliersList.Add(new SelectListItem
+                {
+                    Value = supplier.Id.ToString(),
+                    Text = supplier.Name,
+                    Selected = selectedSupplierId.HasValue && supplier.Id == selectedSupplierId.Value
+                });
+            }
+
+            ViewBag.GroceryItems = groceryItemsList;
+            ViewBag.Suppliers = suppliersList;
         }
 
         // GET: Orders
