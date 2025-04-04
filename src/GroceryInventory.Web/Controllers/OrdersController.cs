@@ -2,6 +2,7 @@ using GroceryInventory.Core.Models;
 using GroceryInventory.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 
 namespace GroceryInventory.Web.Controllers
 {
@@ -27,17 +28,13 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
             {
-                Value = i.Id.ToString(),
-                Text = $"{i.Name} ({i.Quantity} {i.Unit})"
-            });
+                Id = i.Id,
+                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
+            }), "Id", "DisplayName");
 
-            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
-            {
-                Value = s.Id.ToString(),
-                Text = s.Name
-            });
+            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name");
 
             return View();
         }
@@ -56,19 +53,13 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
             {
-                Value = i.Id.ToString(),
-                Text = $"{i.Name} ({i.Quantity} {i.Unit})",
-                Selected = i.Id == order.GroceryItemId
-            });
+                Id = i.Id,
+                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
+            }), "Id", "DisplayName", order.GroceryItemId);
 
-            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
-            {
-                Value = s.Id.ToString(),
-                Text = s.Name,
-                Selected = s.Id == order.SupplierId
-            });
+            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
 
             return View(order);
         }
@@ -85,19 +76,13 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
             {
-                Value = i.Id.ToString(),
-                Text = $"{i.Name} ({i.Quantity} {i.Unit})",
-                Selected = i.Id == order.GroceryItemId
-            });
+                Id = i.Id,
+                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
+            }), "Id", "DisplayName", order.GroceryItemId);
 
-            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
-            {
-                Value = s.Id.ToString(),
-                Text = s.Name,
-                Selected = s.Id == order.SupplierId
-            });
+            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
 
             return View(order);
         }
@@ -121,19 +106,13 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
             {
-                Value = i.Id.ToString(),
-                Text = $"{i.Name} ({i.Quantity} {i.Unit})",
-                Selected = i.Id == order.GroceryItemId
-            });
+                Id = i.Id,
+                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
+            }), "Id", "DisplayName", order.GroceryItemId);
 
-            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
-            {
-                Value = s.Id.ToString(),
-                Text = s.Name,
-                Selected = s.Id == order.SupplierId
-            });
+            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
 
             return View(order);
         }
