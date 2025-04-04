@@ -11,6 +11,8 @@ pipeline {
         SOLUTION_FILE = 'GroceryInventory.sln'
         WEB_PROJECT = 'src/GroceryInventory.Web/GroceryInventory.Web.csproj'
         API_PROJECT = 'src/GroceryInventory.API/GroceryInventory.API.csproj'
+        WEB_PORT = '5012'
+        API_PORT = '5013'
     }
     
     stages {
@@ -22,8 +24,14 @@ pipeline {
         
         stage('Clean') {
             steps {
-                sh 'dotnet clean'
-                sh 'dotnet nuget locals all --clear'
+                sh '''
+                    # Kill any existing dotnet processes using our ports
+                    lsof -ti:${WEB_PORT} | xargs kill -9 || true
+                    lsof -ti:${API_PORT} | xargs kill -9 || true
+                    
+                    dotnet clean
+                    dotnet nuget locals all --clear
+                '''
             }
         }
         
@@ -48,9 +56,29 @@ pipeline {
         stage('Publish') {
             steps {
                 sh '''
-                    dotnet publish src/GroceryInventory.Web/GroceryInventory.Web.csproj --configuration Release --output ./publish/web
-                    dotnet publish src/GroceryInventory.API/GroceryInventory.API.csproj --configuration Release --output ./publish/api
+                    dotnet publish ${WEB_PROJECT} --configuration Release --output ./publish/web
+                    dotnet publish ${API_PROJECT} --configuration Release --output ./publish/api
                 '''
+            }
+        }
+        
+        stage('Start Services') {
+            steps {
+                script {
+                    // Start API in background
+                    sh """
+                        cd ./publish/api
+                        ASPNETCORE_URLS=http://localhost:${API_PORT} dotnet GroceryInventory.API.dll &
+                        sleep 5
+                    """
+                    
+                    // Start Web in background
+                    sh """
+                        cd ./publish/web
+                        ASPNETCORE_URLS=http://localhost:${WEB_PORT} dotnet GroceryInventory.Web.dll &
+                        sleep 5
+                    """
+                }
             }
         }
         
@@ -58,22 +86,17 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Wait for applications to start
-                        sh 'sleep 10'
-                        
                         // Check Web UI
-                        sh 'curl -f http://localhost:5002 || true'
+                        sh "curl -f http://localhost:${WEB_PORT}"
                         
                         // Check API endpoints
-                        sh '''
-                            curl -f http://localhost:5003/api/groceryitems || true
-                            curl -f http://localhost:5003/api/suppliers || true
-                            curl -f http://localhost:5003/api/orders || true
-                        '''
+                        sh """
+                            curl -f http://localhost:${API_PORT}/api/groceryitems
+                            curl -f http://localhost:${API_PORT}/api/suppliers
+                            curl -f http://localhost:${API_PORT}/api/orders
+                        """
                     } catch (Exception e) {
-                        echo "Health check warning: ${e.message}"
-                        // Don't fail the build on health check issues
-                        // as the services might not be running during build
+                        error "Health check failed: ${e.message}"
                     }
                 }
             }
@@ -95,14 +118,21 @@ pipeline {
     }
     
     post {
+        always {
+            script {
+                // Stop any running services
+                sh """
+                    lsof -ti:${WEB_PORT} | xargs kill -9 || true
+                    lsof -ti:${API_PORT} | xargs kill -9 || true
+                """
+                cleanWs()
+            }
+        }
         success {
             echo "Build completed successfully! The ${PROJECT_NAME} application is ready."
         }
         failure {
             echo "Build failed. Please check the logs for details."
-        }
-        always {
-            cleanWs()
         }
     }
 } 
