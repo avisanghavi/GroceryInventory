@@ -1,15 +1,20 @@
-# Grocery Inventory Management System
+# Grocery Inventory System
 
-A comprehensive system for managing grocery inventory, including tracking stock levels, managing suppliers, handling orders, and generating reports.
+A .NET Core application for managing grocery inventory, suppliers, and orders.
 
 ## Features
 
-- Inventory tracking and management
-- Supplier management
-- Order processing
-- Reporting and analytics
-- User authentication and authorization
-- Responsive web interface
+- Manage grocery items
+- Track suppliers
+- Handle orders
+- RESTful API endpoints
+
+## Jenkins Integration
+
+- Automated builds
+- Continuous Integration
+- Automated testing
+- Deployment pipeline
 
 ## Technology Stack
 
