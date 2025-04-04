@@ -27,8 +27,8 @@ namespace GroceryInventory.Web.Controllers
             var groceryItems = await _apiService.GetGroceryItemsAsync();
             var suppliers = await _apiService.GetSuppliersAsync();
 
-            ViewBag.GroceryItems = new SelectList(groceryItems, "Id", "Name", null);
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", null);
+            ViewBag.GroceryItems = new SelectList(groceryItems, "Id", "Name");
+            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name");
 
             return View();
         }
