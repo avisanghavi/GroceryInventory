@@ -15,6 +15,26 @@ namespace GroceryInventory.Web.Controllers
             _apiService = apiService;
         }
 
+        private async Task PopulateDropDowns(int? selectedGroceryItemId = null, int? selectedSupplierId = null)
+        {
+            var groceryItems = await _apiService.GetGroceryItemsAsync();
+            var suppliers = await _apiService.GetSuppliersAsync();
+
+            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            {
+                Value = i.Id.ToString(),
+                Text = $"{i.Name} ({i.Quantity} {i.Unit})",
+                Selected = selectedGroceryItemId.HasValue && i.Id == selectedGroceryItemId.Value
+            });
+
+            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name,
+                Selected = selectedSupplierId.HasValue && s.Id == selectedSupplierId.Value
+            });
+        }
+
         // GET: Orders
         public async Task<IActionResult> Index()
         {
@@ -25,17 +45,7 @@ namespace GroceryInventory.Web.Controllers
         // GET: Orders/Create
         public async Task<IActionResult> Create()
         {
-            var groceryItems = await _apiService.GetGroceryItemsAsync();
-            var suppliers = await _apiService.GetSuppliersAsync();
-
-            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
-            {
-                Id = i.Id,
-                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
-            }), "Id", "DisplayName");
-
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name");
-
+            await PopulateDropDowns();
             return View();
         }
 
@@ -50,17 +60,7 @@ namespace GroceryInventory.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var groceryItems = await _apiService.GetGroceryItemsAsync();
-            var suppliers = await _apiService.GetSuppliersAsync();
-
-            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
-            {
-                Id = i.Id,
-                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
-            }), "Id", "DisplayName", order.GroceryItemId);
-
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
-
+            await PopulateDropDowns(order.GroceryItemId, order.SupplierId);
             return View(order);
         }
 
@@ -73,17 +73,7 @@ namespace GroceryInventory.Web.Controllers
                 return NotFound();
             }
 
-            var groceryItems = await _apiService.GetGroceryItemsAsync();
-            var suppliers = await _apiService.GetSuppliersAsync();
-
-            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
-            {
-                Id = i.Id,
-                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
-            }), "Id", "DisplayName", order.GroceryItemId);
-
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
-
+            await PopulateDropDowns(order.GroceryItemId, order.SupplierId);
             return View(order);
         }
 
@@ -103,17 +93,7 @@ namespace GroceryInventory.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var groceryItems = await _apiService.GetGroceryItemsAsync();
-            var suppliers = await _apiService.GetSuppliersAsync();
-
-            ViewBag.GroceryItems = new SelectList(groceryItems.Select(i => new
-            {
-                Id = i.Id,
-                DisplayName = $"{i.Name} ({i.Quantity} {i.Unit})"
-            }), "Id", "DisplayName", order.GroceryItemId);
-
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "Name", order.SupplierId);
-
+            await PopulateDropDowns(order.GroceryItemId, order.SupplierId);
             return View(order);
         }
 
