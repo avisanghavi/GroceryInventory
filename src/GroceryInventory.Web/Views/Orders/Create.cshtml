@@ -1,0 +1,70 @@
+@model GroceryInventory.Core.Models.Order
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container">
+    <h1>Create Order</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="GroceryItemId" class="control-label">Item</label>
+                    <select asp-for="GroceryItemId" class="form-control" asp-items="ViewBag.GroceryItems">
+                        <option value="">-- Select Item --</option>
+                    </select>
+                    <span asp-validation-for="GroceryItemId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="SupplierId" class="control-label">Supplier</label>
+                    <select asp-for="SupplierId" class="form-control" asp-items="ViewBag.Suppliers">
+                        <option value="">-- Select Supplier --</option>
+                    </select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Quantity" class="control-label"></label>
+                    <input asp-for="Quantity" class="form-control" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="OrderDate" class="control-label"></label>
+                    <input asp-for="OrderDate" class="form-control" type="date" />
+                    <span asp-validation-for="OrderDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="DeliveryDate" class="control-label"></label>
+                    <input asp-for="DeliveryDate" class="form-control" type="date" />
+                    <span asp-validation-for="DeliveryDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Status" class="control-label"></label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Pending">Pending</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

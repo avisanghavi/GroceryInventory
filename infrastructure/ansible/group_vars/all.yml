@@ -1,0 +1,22 @@
+---
+# Application settings
+app_name: grocery-inventory
+app_user: grocery
+app_group: grocery
+app_dir: /opt/{{ app_name }}
+
+# Database settings
+db_name: grocery_inventory
+db_user: grocery_user
+db_password: "{{ vault_db_password }}"
+
+# Nginx settings
+nginx_listen_port: 80
+nginx_server_name: "{{ inventory_hostname }}"
+
+# Environment settings
+env: "{{ lookup('env', 'ENVIRONMENT') | default('staging', true) }}"
+
+# Service settings
+service_restart: always
+service_restart_sec: 10

@@ -1,0 +1,100 @@
+---
+- name: Deploy Grocery Inventory System
+  hosts: all
+  become: yes
+  vars_files:
+    - group_vars/all.yml
+    - group_vars/{{ env }}.yml
+
+  roles:
+    - role: postgresql
+      tags: postgresql
+    - role: dotnet
+      tags: dotnet
+    - role: nginx
+      tags: nginx
+    - role: deploy
+      tags: deploy
+
+  tasks:
+    - name: Ensure required packages are installed
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - git
+          - curl
+          - wget
+          - unzip
+          - nginx
+          - postgresql
+          - postgresql-contrib
+          - dotnet-sdk-7.0
+          - dotnet-runtime-7.0
+          - aspnetcore-runtime-7.0
+
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+
+    - name: Copy application files
+      copy:
+        src: "{{ jenkins_workspace }}/publish/"
+        dest: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+
+    - name: Configure PostgreSQL
+      postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        state: present
+        role_attr_flags: "CREATEDB,LOGIN"
+
+    - name: Create database
+      postgresql_db:
+        name: "{{ db_name }}"
+        owner: "{{ db_user }}"
+        state: present
+
+    - name: Configure Nginx
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/{{ app_name }}
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart nginx
+
+    - name: Enable Nginx site
+      file:
+        src: /etc/nginx/sites-available/{{ app_name }}
+        dest: /etc/nginx/sites-enabled/{{ app_name }}
+        state: link
+      notify: restart nginx
+
+    - name: Configure systemd service
+      template:
+        src: grocery-inventory.service.j2
+        dest: /etc/systemd/system/{{ app_name }}.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart grocery-inventory
+
+    - name: Start and enable services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - nginx
+        - postgresql
+        - "{{ app_name }}"

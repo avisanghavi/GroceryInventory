@@ -1,0 +1,13 @@
+[webservers]
+web1 ansible_host=staging-web1.example.com
+
+[apiservers]
+api1 ansible_host=staging-api1.example.com
+
+[dbservers]
+db1 ansible_host=staging-db1.example.com
+
+[all:vars]
+ansible_user=deploy
+ansible_ssh_private_key_file=~/.ssh/deploy_key
+ansible_python_interpreter=/usr/bin/python3 

@@ -1,0 +1,19 @@
+---
+# Staging-specific settings
+nginx_listen_port: 80
+
+# Database settings
+db_host: db1
+db_port: 5432
+db_max_connections: 50
+
+# Application settings
+app_environment: Staging
+app_url: http://staging.grocery-inventory.example.com
+app_api_url: http://staging-api.grocery-inventory.example.com
+
+# Security settings
+security_headers: true
+cors_origins:
+  - http://staging.grocery-inventory.example.com
+  - http://staging-api.grocery-inventory.example.com

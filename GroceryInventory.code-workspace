@@ -1,0 +1,83 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[csharp]": {
+      "editor.defaultFormatter": "ms-dotnettools.csharp"
+    },
+    "yaml.schemas": {
+      "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+      "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "infrastructure/yaml/*.yaml"
+    },
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "csharp.format.enable": true,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-dotnettools.csharp",
+      "ms-dotnettools.vscode-dotnet-runtime",
+      "jmrog.vscode-nuget-package-manager",
+      "ms-vscode.PowerShell",
+      "ms-azuretools.vscode-docker",
+      "ckolkman.vscode-postgres",
+      "redhat.vscode-yaml",
+      "esbenp.prettier-vscode",
+      "visualstudioexptteam.vscodeintellicode",
+      "njpwerner.autodocstring",
+      "streetsidesoftware.code-spell-checker",
+      "editorconfig.editorconfig",
+      "ms-vscode.vscode-node-azure-pack"
+    ]
+  },
+  "launch": {
+    "configurations": [
+      {
+        "name": "Launch Web App",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/src/GroceryInventory.Web/bin/Debug/net7.0/GroceryInventory.Web.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/src/GroceryInventory.Web",
+        "stopAtEntry": false,
+        "serverReadyAction": {
+          "action": "openExternally",
+          "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+        },
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
+      {
+        "name": "Launch API",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/src/GroceryInventory.API/bin/Debug/net7.0/GroceryInventory.API.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/src/GroceryInventory.API",
+        "stopAtEntry": false,
+        "serverReadyAction": {
+          "action": "openExternally",
+          "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+        },
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Launch All",
+        "configurations": ["Launch API", "Launch Web App"]
+      }
+    ]
+  }
+}

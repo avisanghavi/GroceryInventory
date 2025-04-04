@@ -1,0 +1,97 @@
+﻿@model GroceryInventory.Web.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <div class="row">
+        <!-- Inventory Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Inventory Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total Items: @Model.GroceryItems.Count()</p>
+                    <a asp-controller="GroceryItems" asp-action="Index" class="btn btn-primary">View Inventory</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suppliers Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Suppliers Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total Suppliers: @Model.Suppliers.Count()</p>
+                    <a asp-controller="Suppliers" asp-action="Index" class="btn btn-primary">View Suppliers</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Orders Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total Orders: @Model.Orders.Count()</p>
+                    <a asp-controller="Orders" asp-action="Index" class="btn btn-primary">View Orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Orders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Item</th>
+                                        <th>Supplier</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Order Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate).Take(5))
+                                    {
+                                        <tr>
+                                            <td>@order.Id</td>
+                                            <td>@order.GroceryItem?.Name</td>
+                                            <td>@order.Supplier?.Name</td>
+                                            <td>@order.Quantity</td>
+                                            <td>@order.Status</td>
+                                            <td>@order.OrderDate.ToString("MM/dd/yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No recent orders.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

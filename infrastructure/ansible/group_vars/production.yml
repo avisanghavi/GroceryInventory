@@ -1,0 +1,21 @@
+---
+# Production-specific settings
+nginx_listen_port: 443
+nginx_ssl_cert: /etc/ssl/certs/{{ app_name }}.crt
+nginx_ssl_key: /etc/ssl/private/{{ app_name }}.key
+
+# Database settings
+db_host: db1
+db_port: 5432
+db_max_connections: 100
+
+# Application settings
+app_environment: Production
+app_url: https://grocery-inventory.example.com
+app_api_url: https://api.grocery-inventory.example.com
+
+# Security settings
+security_headers: true
+cors_origins:
+  - https://grocery-inventory.example.com
+  - https://api.grocery-inventory.example.com
