@@ -1,25 +1,24 @@
 pipeline {
     agent any
     
-    tools {
-        dotnetsdk 'dotnet-7.0'
-    }
-    
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
         ASPNETCORE_ENVIRONMENT = 'Development'
+        PATH = "/opt/homebrew/bin:${env.PATH}"
     }
     
     stages {
         stage('Setup') {
             steps {
-                echo "Using .NET SDK from tools configuration"
+                echo "Using system .NET SDK"
                 sh '''
                     echo "Current directory: $(pwd)"
                     echo "Directory contents:"
                     ls -la
+                    echo "PATH: $PATH"
                     echo ".NET SDK version:"
+                    which dotnet
                     dotnet --version || true
                     echo ".NET SDK info:"
                     dotnet --info || true
@@ -178,6 +177,7 @@ pipeline {
                 echo "Directory contents:"
                 ls -la
                 echo ".NET SDK version:"
+                which dotnet || true
                 dotnet --version || true
             '''
         }
