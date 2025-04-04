@@ -7,14 +7,27 @@ pipeline {
         DOTNET_CLI_TELEMETRY_OPTOUT = '1'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
         ASPNETCORE_ENVIRONMENT = 'Development'
+        PATH = "/usr/local/share/dotnet:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
     }
     
     stages {
         stage('Setup') {
             steps {
                 script {
-                    // Check .NET version
+                    // Install .NET SDK if not present
                     sh '''
+                        # Check if dotnet is installed
+                        if ! command -v dotnet &> /dev/null; then
+                            echo ".NET SDK not found. Installing..."
+                            
+                            # Download and install .NET SDK
+                            curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version ${DOTNET_VERSION}
+                            
+                            # Add to PATH
+                            export PATH="/usr/local/share/dotnet:$PATH"
+                        fi
+                        
+                        # Verify installation
                         dotnet --version
                         dotnet --info
                     '''
