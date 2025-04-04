@@ -1,6 +1,7 @@
 using GroceryInventory.Core.Models;
 using GroceryInventory.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GroceryInventory.Web.Controllers
 {
@@ -23,8 +24,21 @@ namespace GroceryInventory.Web.Controllers
         // GET: Orders/Create
         public async Task<IActionResult> Create()
         {
-            ViewBag.GroceryItems = await _apiService.GetGroceryItemsAsync();
-            ViewBag.Suppliers = await _apiService.GetSuppliersAsync();
+            var groceryItems = await _apiService.GetGroceryItemsAsync();
+            var suppliers = await _apiService.GetSuppliersAsync();
+
+            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            {
+                Value = i.Id.ToString(),
+                Text = $"{i.Name} (${i.Price:F2})"
+            });
+
+            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name
+            });
+
             return View();
         }
 
@@ -38,8 +52,22 @@ namespace GroceryInventory.Web.Controllers
                 await _apiService.CreateOrderAsync(order);
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.GroceryItems = await _apiService.GetGroceryItemsAsync();
-            ViewBag.Suppliers = await _apiService.GetSuppliersAsync();
+
+            var groceryItems = await _apiService.GetGroceryItemsAsync();
+            var suppliers = await _apiService.GetSuppliersAsync();
+
+            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            {
+                Value = i.Id.ToString(),
+                Text = $"{i.Name} (${i.Price:F2})"
+            });
+
+            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name
+            });
+
             return View(order);
         }
 
@@ -51,8 +79,24 @@ namespace GroceryInventory.Web.Controllers
             {
                 return NotFound();
             }
-            ViewBag.GroceryItems = await _apiService.GetGroceryItemsAsync();
-            ViewBag.Suppliers = await _apiService.GetSuppliersAsync();
+
+            var groceryItems = await _apiService.GetGroceryItemsAsync();
+            var suppliers = await _apiService.GetSuppliersAsync();
+
+            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            {
+                Value = i.Id.ToString(),
+                Text = $"{i.Name} (${i.Price:F2})",
+                Selected = i.Id == order.GroceryItemId
+            });
+
+            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name,
+                Selected = s.Id == order.SupplierId
+            });
+
             return View(order);
         }
 
@@ -71,8 +115,24 @@ namespace GroceryInventory.Web.Controllers
                 await _apiService.UpdateOrderAsync(id, order);
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.GroceryItems = await _apiService.GetGroceryItemsAsync();
-            ViewBag.Suppliers = await _apiService.GetSuppliersAsync();
+
+            var groceryItems = await _apiService.GetGroceryItemsAsync();
+            var suppliers = await _apiService.GetSuppliersAsync();
+
+            ViewBag.GroceryItems = groceryItems.Select(i => new SelectListItem
+            {
+                Value = i.Id.ToString(),
+                Text = $"{i.Name} (${i.Price:F2})",
+                Selected = i.Id == order.GroceryItemId
+            });
+
+            ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+            {
+                Value = s.Id.ToString(),
+                Text = s.Name,
+                Selected = s.Id == order.SupplierId
+            });
+
             return View(order);
         }
 
