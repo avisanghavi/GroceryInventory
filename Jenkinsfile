@@ -8,9 +8,9 @@ pipeline {
         DOTNET_CLI_HOME = '/tmp/DOTNET_CLI_HOME'
         DOTNET_VERSION = '7.0'
         PROJECT_NAME = 'GroceryInventory'
-        SOLUTION_FILE = 'GroceryInventory.sln'
-        WEB_PROJECT = 'src/GroceryInventory.Web/GroceryInventory.Web.csproj'
-        API_PROJECT = 'src/GroceryInventory.API/GroceryInventory.API.csproj'
+        SOLUTION_FILE = './GroceryInventory.sln'
+        WEB_PROJECT = './src/GroceryInventory.Web/GroceryInventory.Web.csproj'
+        API_PROJECT = './src/GroceryInventory.API/GroceryInventory.API.csproj'
         WEB_PORT = '5012'
         API_PORT = '5013'
         ASPNETCORE_ENVIRONMENT = 'Development'
@@ -33,7 +33,7 @@ pipeline {
                             lsof -ti:${API_PORT} | xargs kill -9 || true
                             
                             # Clean solution and NuGet cache
-                            dotnet clean ${SOLUTION_FILE} || true
+                            dotnet clean "${SOLUTION_FILE}" || true
                             dotnet nuget locals all --clear || true
                             
                             # Remove any existing publish directories
@@ -49,28 +49,74 @@ pipeline {
         
         stage('Restore Dependencies') {
             steps {
-                sh "dotnet restore ${SOLUTION_FILE}"
+                script {
+                    try {
+                        sh """
+                            # Ensure solution exists
+                            if [ ! -f "${SOLUTION_FILE}" ]; then
+                                echo "Solution file not found at ${SOLUTION_FILE}"
+                                exit 1
+                            fi
+                            
+                            dotnet restore "${SOLUTION_FILE}"
+                        """
+                    } catch (Exception e) {
+                        error "Failed to restore dependencies: ${e.message}"
+                    }
+                }
             }
         }
         
         stage('Build') {
             steps {
-                sh "dotnet build ${SOLUTION_FILE} --configuration Release --no-restore"
+                script {
+                    try {
+                        sh """
+                            dotnet build "${SOLUTION_FILE}" --configuration Release --no-restore
+                        """
+                    } catch (Exception e) {
+                        error "Build failed: ${e.message}"
+                    }
+                }
             }
         }
         
         stage('Test') {
             steps {
-                sh "dotnet test ${SOLUTION_FILE} --no-restore --verbosity normal"
+                script {
+                    try {
+                        sh """
+                            dotnet test "${SOLUTION_FILE}" --no-restore --verbosity normal
+                        """
+                    } catch (Exception e) {
+                        error "Tests failed: ${e.message}"
+                    }
+                }
             }
         }
         
         stage('Publish') {
             steps {
-                sh """
-                    dotnet publish ${WEB_PROJECT} --configuration Release --output ./publish/web --no-restore
-                    dotnet publish ${API_PROJECT} --configuration Release --output ./publish/api --no-restore
-                """
+                script {
+                    try {
+                        sh """
+                            # Ensure project files exist
+                            if [ ! -f "${WEB_PROJECT}" ]; then
+                                echo "Web project file not found at ${WEB_PROJECT}"
+                                exit 1
+                            fi
+                            if [ ! -f "${API_PROJECT}" ]; then
+                                echo "API project file not found at ${API_PROJECT}"
+                                exit 1
+                            fi
+                            
+                            dotnet publish "${WEB_PROJECT}" --configuration Release --output ./publish/web --no-restore
+                            dotnet publish "${API_PROJECT}" --configuration Release --output ./publish/api --no-restore
+                        """
+                    } catch (Exception e) {
+                        error "Publish failed: ${e.message}"
+                    }
+                }
             }
         }
         
@@ -89,6 +135,13 @@ pipeline {
                             nohup dotnet GroceryInventory.API.dll > logs/api.log 2>&1 &
                             echo \$! > ./api.pid
                             sleep 15
+                            
+                            # Verify API process is running
+                            if ! ps -p \$(cat ./api.pid) > /dev/null; then
+                                echo "API process failed to start"
+                                cat logs/api.log
+                                exit 1
+                            fi
                         """
                         
                         // Start Web in background with proper environment
@@ -99,6 +152,13 @@ pipeline {
                             nohup dotnet GroceryInventory.Web.dll > logs/web.log 2>&1 &
                             echo \$! > ./web.pid
                             sleep 15
+                            
+                            # Verify Web process is running
+                            if ! ps -p \$(cat ./web.pid) > /dev/null; then
+                                echo "Web process failed to start"
+                                cat logs/web.log
+                                exit 1
+                            fi
                         """
                     } catch (Exception e) {
                         echo "Warning during service startup: ${e.message}"
